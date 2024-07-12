@@ -86,6 +86,7 @@ export default {
         formData.append('category', this.selectedCategory);
         formData.append('remarks', this.remarks);
         const response = await fetch(scriptUrl, {
+          redirect: 'follow',
           method: 'POST',
           body: formData,
          
