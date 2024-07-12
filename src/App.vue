@@ -77,7 +77,7 @@ export default {
       }, 200);
     },
     async submitExpense() {
-      const scriptUrl = 'https://script.google.com/macros/s/AKfycbypmkHlLa3gAO-6t7qJNNZJnV1Ix6nHAJeJLQW-N2ralzSA0qH4hirZCwhzVQxhP9bU/exec';
+      const scriptUrl = 'https://script.google.com/macros/s/AKfycbyf9E06cPOkdDEAeuVyI4dNKKJWpbe6gvGEOP8ltem2Bl4D9uNEACmPF0OtjIRcqrd8/exec';
       try {
         const formData = new FormData();
         formData.append('amount', this.amount);
