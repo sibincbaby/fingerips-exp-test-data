@@ -1,61 +1,68 @@
 <template>
   <div id="app">
-    <h1>Expense Tracker</h1>
-    
+    <h1>Expense Tracker Form</h1>
     <div>
       <label for="amount">Amount:</label>
-      <input v-model.number="amount" type="number" id="amount" step="0.01">
+      <input v-model.number="amount" type="number" id="amount">
     </div>
-    
+    <div class="radio-group">
+      <label>Type:</label>
+      <div>
+        <input type="radio" id="expense" name="type" value="Expense" v-model="type">
+        <label for="expense">Expense</label>
+      </div>
+      <div>
+        <input type="radio" id="income" name="type" value="Income" v-model="type">
+        <label for="income">Income</label>
+      </div>
+    </div>
+    <div>
+      <label for="description">Description:</label>
+      <input v-model="description" type="text" id="description">
+    </div>
     <div>
       <label for="category">Category:</label>
       <div class="custom-select">
-        <input 
-          v-model="searchQuery" 
-          @focus="showOptions = true"
-          @blur="onBlur"
-          placeholder="Search or select a category"
-        >
+        <input v-model="searchQuery" @focus="showOptions = true" @blur="onBlur"
+          placeholder="Search or select a category">
         <ul v-if="showOptions">
-          <li 
-            v-for="category in filteredCategories" 
-            :key="category"
-            @mousedown="selectCategory(category)"
-          >
+          <li v-for="category in filteredCategories" :key="category" @mousedown="selectCategory(category)">
             {{ category }}
           </li>
         </ul>
       </div>
     </div>
-    
-    <button @click="submitExpense">Submit</button>
-    
-    <div v-if="submittedExpense">
-      <h2>Submitted Expense:</h2>
-      <p>Amount: ${{ submittedExpense.amount }}</p>
-      <p>Category: {{ submittedExpense.category }}</p>
+    <div>
+      <label for="remarks">If you have chosen "Others," add your category here (optional):</label>
+      <input v-model="remarks" type="text" id="remarks">
     </div>
+
+    <button @click="submitExpense">Submit</button>
   </div>
 </template>
 
 <script>
+import './styles/style.css';
 export default {
   data() {
     return {
-      amount: 0,
+      amount: "",
+      type: 'Expense', // Default to "Expense"
+      description: '',
       selectedCategory: '',
+      remarks: '',
       searchQuery: '',
       categories: ['Food', 'Transportation', 'Entertainment', 'Utilities', 'Shopping'],
       submittedExpense: null,
-      showOptions: false
-    }
+      showOptions: false,
+    };
   },
   computed: {
     filteredCategories() {
-      return this.categories.filter(category =>
+      return this.categories.filter((category) =>
         category.toLowerCase().includes(this.searchQuery.toLowerCase())
-      )
-    }
+      );
+    },
   },
   methods: {
     selectCategory(category) {
@@ -69,79 +76,41 @@ export default {
         this.showOptions = false;
       }, 200);
     },
-    submitExpense() {
-      if (this.amount && this.selectedCategory) {
-        this.submittedExpense = {
-          amount: this.amount,
-          category: this.selectedCategory
+    async submitExpense() {
+      const scriptUrl = 'https://script.google.com/macros/s/AKfycbypmkHlLa3gAO-6t7qJNNZJnV1Ix6nHAJeJLQW-N2ralzSA0qH4hirZCwhzVQxhP9bU/exec';
+      try {
+        const formData = new FormData();
+        formData.append('amount', this.amount);
+        formData.append('type', this.type);
+        formData.append('description', this.description);
+        formData.append('category', this.selectedCategory);
+        formData.append('remarks', this.remarks);
+        const response = await fetch(scriptUrl, {
+          method: 'POST',
+          body: formData,
+         
+        });
+
+        if (response.ok) {
+          const result = await response.json();
+          console.log('Data sent successfully:', result);
+          // Optionally reset form fields or show success message
+          this.amount = '';
+          this.type = 'Expense'; // Reset to default
+          this.description = '';
+          this.selectedCategory = '';
+          this.remarks = '';
+          // Reset other form fields as needed
+        } else {
+          console.error('Failed to send data:', response.statusText);
+          // Handle error, e.g., show an error message to the user
         }
-        // Here you would typically send this data to a backend or store it
-        console.log('Submitted:', this.submittedExpense)
-      } else {
-        alert('Please enter both amount and category')
+      } catch (error) {
+        console.error('Error submitting form:', error);
+        // Handle error, e.g., show an error message to the user
       }
     }
-  }
-}
+
+  },
+};
 </script>
-
-<style scoped>
-#app {
-  font-family: Arial, sans-serif;
-  max-width: 400px;
-  margin: 0 auto;
-  padding: 20px;
-}
-
-div {
-  margin-bottom: 15px;
-}
-
-label {
-  display: block;
-  margin-bottom: 5px;
-}
-
-input {
-  width: 100%;
-  padding: 5px;
-  box-sizing: border-box;
-}
-
-.custom-select {
-  position: relative;
-}
-
-.custom-select ul {
-  position: absolute;
-  width: 100%;
-  max-height: 200px;
-  overflow-y: auto;
-  list-style-type: none;
-  padding: 0;
-  margin: 0;
-  border: 1px solid #ccc;
-  background-color: white;
-}
-
-.custom-select li {
-  padding: 5px;
-  cursor: pointer;
-}
-
-.custom-select li:hover {
-  background-color: #f0f0f0;
-}
-
-button {
-  background-color: #4CAF50;
-  color: white;
-  padding: 10px 15px;
-  border: none;
-  cursor: pointer;
-}
-
-button:hover {
-  background-color: #45a049;
-}
-</style>
