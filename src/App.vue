@@ -6,7 +6,7 @@
     <div class="field">
       <label class="label">Amount:</label>
       <div class="control">
-        <input v-model.number="amount" type="number" id="amount" step="0.01" class="input">
+        <input v-model.number="amount" type="number" id="amount" class="input" placeholder="Enter the amount">
       </div>
     </div>
 
@@ -14,23 +14,28 @@
     <div class="field">
       <label class="label">Type:</label>
       <div class="control is-flex is-justify-content-space-around">
-        <label class="radio button is-large is-light" :class="{ 'is-active': type === 'Expense' }">
-          <input type="radio" id="expense" name="type" value="Expense" v-model="type" @change="loadCategories">
+        <!-- Expense Radio Button -->
+        <label class="radio button is-large is-light has-background-white"
+          :class="{ 'has-background-primary': type === 'Expense' }">
+          <input type="radio" id="expense" name="type" value="Expense" v-model="type">
           <span class="has-text-centered">Expense</span>
         </label>
-        <label class="radio button is-large is-light" :class="{ 'is-active': type === 'Income' }">
-          <input type="radio" id="income" name="type" value="Income" v-model="type" @change="loadCategories">
+
+        <!-- Income Radio Button -->
+        <label class="radio button is-large is-light has-background-white"
+          :class="{ 'has-background-primary': type === 'Income' }">
+          <input type="radio" id="income" name="type" value="Income" v-model="type">
           <span class="has-text-centered">Income</span>
         </label>
       </div>
-      
+
     </div>
 
     <!-- Description Input -->
     <div class="field">
       <label class="label">Description <span class="has-text-danger">*</span>:</label>
       <div class="control">
-        <input v-model="description" type="text" id="desc" class="input" :class="{ 'is-danger': descriptionError }">
+        <input placeholder="Eg:Tea,Petrol,Movie,Lunch etc." v-model="description" type="text" id="desc" class="input" :class="{ 'is-danger': descriptionError }">
       </div>
       <p v-if="descriptionError" class="help is-danger">{{ descriptionError }}</p>
     </div>
@@ -44,8 +49,8 @@
           <multiselect v-model="selectedCategory" :options="categories" label="name" track-by="name" :searchable="true"
             :close-on-select="true" :clear-on-select="false" :hide-selected="true" :preserve-search="true"
             :multiple="false" :taggable="true" :select-on-tab="true"
-            :class="{ 'is-open': isOpen, 'is-danger': categoryError }" @open="isOpen = true" @close="isOpen = false" :tag-placeholder="'Press enter to create a new category'"
-            @tag="addTag">
+            :class="{ 'is-open': isOpen, 'is-danger': categoryError }" @open="isOpen = true" @close="isOpen = false"
+            :tag-placeholder="'Press enter to create a new category'" @tag="addTag">
             <template #tag="props">
               <span class="custom-tag">
                 {{ props.option.name }}
@@ -132,8 +137,8 @@ export default {
       return this.description && this.selectedCategory;
     },
     mounted() {
-    this.loadCategories();
-  },
+      this.loadCategories();
+    },
     async loadCategories() {
       this.categories = this.type === 'Income' ? incomeCategories : expenseCategories;
     },
@@ -193,19 +198,38 @@ export default {
   margin-bottom: 1.5rem;
 }
 
+/* Custom styles for radio buttons */
+.radio {
+  cursor: pointer;
+  /* Make the cursor pointer for better usability */
+  border-radius: 999px;
+  /* Ensure round shape for large clickable area */
+  padding: 0.75rem 1.5rem;
+  /* Adjust padding for larger clickable area */
+  margin-right: 1rem;
+  /* Space between radio buttons */
+  transition: background-color 0.3s, color 0.3s;
+  /* Smooth transition for visual feedback */
+
+  /* Optional: Adjust text size and weight */
+  font-size: 1rem;
+  font-weight: 500;
+}
 
 .radio input[type="radio"] {
   display: none;
 }
 
-.radio input[type="radio"]:checked + label {
+.radio.has-background-primary {
   background-color: #3273dc;
+  /* Custom primary color */
   color: white;
+  /* Text color for active state */
 }
-.radio input[type="radio"].is-checked {
-  border-color: #8a48c7; 
-}
-.multiselect__option--highlight{
-  background-color: #8a48c7!important;
+/* Inactive state style (optional) */
+.radio:not(.has-background-primary) {
+  background-color: #ffffff; /* Default background color for inactive state */
+  color: #4a4a4a; /* Default text color for inactive state */
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.1); /* Shadow effect for inactive state */
 }
 </style>
