@@ -1,7 +1,7 @@
 <template>
   <div id="app" class="section">
-    <h1 class="title">Expense Tracker Form</h1>
-
+    <h1 class="title">Expense Data</h1>
+    <label></label>
     <!-- Amount Input -->
     <div class="field">
       <label class="label">Amount:</label>
@@ -49,7 +49,7 @@
             :close-on-select="true" :clear-on-select="false" :hide-selected="true" :preserve-search="true"
             :multiple="false" :taggable="true" :select-on-tab="true"
             :class="{ 'is-open': isOpen, 'is-danger': categoryError }" @open="isOpen = true" @close="isOpen = false"
-            :tag-placeholder="'Press enter to create a new category'" @tag="addTag">
+            :tag-placeholder="'Select here to create as a new category'" @tag="addTag">
             <template #tag="props">
               <span class="custom-tag">
                 {{ props.option.name }}
