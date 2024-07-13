@@ -13,16 +13,17 @@
     <!-- Type Radio Buttons -->
     <div class="field">
       <label class="label">Type:</label>
-      <div class="control">
-        <label class="radio">
-          <input type="radio" id="expense" name="type" value="Expense" v-model="type">
-          Expense
+      <div class="control is-flex is-justify-content-space-around">
+        <label class="radio button is-large is-light" :class="{ 'is-active': type === 'Expense' }">
+          <input type="radio" id="expense" name="type" value="Expense" v-model="type" @change="loadCategories">
+          <span class="has-text-centered">Expense</span>
         </label>
-        <label class="radio">
-          <input type="radio" id="income" name="type" value="Income" v-model="type">
-          Income
+        <label class="radio button is-large is-light" :class="{ 'is-active': type === 'Income' }">
+          <input type="radio" id="income" name="type" value="Income" v-model="type" @change="loadCategories">
+          <span class="has-text-centered">Income</span>
         </label>
       </div>
+      
     </div>
 
     <!-- Description Input -->
@@ -36,14 +37,14 @@
 
     <!-- Category Select (Searchable Dropdown using Vue-multiselect) -->
     <div class="field">
-      <label class="label">Category:</label>
+      <label class="label">Category <span class="has-text-danger">*</span>:</label>
       <div class="control">
         <div class="select is-fullwidth">
 
           <multiselect v-model="selectedCategory" :options="categories" label="name" track-by="name" :searchable="true"
             :close-on-select="true" :clear-on-select="false" :hide-selected="true" :preserve-search="true"
             :multiple="false" :taggable="true" :select-on-tab="true"
-            :class="{ 'is-open': isOpen, 'is-danger': categoryError }" @open="isOpen = true" @close="isOpen = false"
+            :class="{ 'is-open': isOpen, 'is-danger': categoryError }" @open="isOpen = true" @close="isOpen = false" :tag-placeholder="'Press enter to create a new category'"
             @tag="addTag">
             <template #tag="props">
               <span class="custom-tag">
@@ -80,6 +81,8 @@
 // Import Vue-multiselect
 import Multiselect from 'vue-multiselect';
 import { useToast } from 'vue-toastification';
+import expenseCategories from './assets/expenseCategories.json';
+import incomeCategories from './assets/incomeCategories.json';
 export default {
   components: {
     Multiselect
@@ -104,6 +107,9 @@ export default {
       loading: false
     }
   },
+  created() {
+    this.categories = expenseCategories;
+  },
   setup() {
     const toast = useToast()
     return { toast }
@@ -124,6 +130,12 @@ export default {
     },
     isFormValid() {
       return this.description && this.selectedCategory;
+    },
+    mounted() {
+    this.loadCategories();
+  },
+    async loadCategories() {
+      this.categories = this.type === 'Income' ? incomeCategories : expenseCategories;
     },
     async submitExpense() {
       this.isSubmitted = true;
@@ -179,5 +191,21 @@ export default {
 
 .field {
   margin-bottom: 1.5rem;
+}
+
+
+.radio input[type="radio"] {
+  display: none;
+}
+
+.radio input[type="radio"]:checked + label {
+  background-color: #3273dc;
+  color: white;
+}
+.radio input[type="radio"].is-checked {
+  border-color: #8a48c7; 
+}
+.multiselect__option--highlight{
+  background-color: #8a48c7!important;
 }
 </style>
