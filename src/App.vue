@@ -62,14 +62,6 @@
       </div>
       <p v-if="categoryError" class="help is-danger">{{ categoryError }}</p>
     </div>
-
-    <!-- Remarks Input -->
-    <div class="field">
-      <label class="label">Remarks:</label>
-      <div class="control">
-        <textarea v-model="remarks" id="remarks" class="textarea"></textarea>
-      </div>
-    </div>
     <!-- Submit Button -->
     <div class="field">
       <div class="control">
@@ -82,11 +74,10 @@
   </div>
 </template>
 <script>
-import Vue from 'vue';
 import Multiselect from 'vue-multiselect';
 import { useToast } from 'vue-toastification';
 import expenseCategoriesJSON from './assets/expenseCategories.json';
-// import incomeCategoriesJSON from './assets/incomeCategories.json';
+import incomeCategoriesJSON from './assets/incomeCategories.json';
 export default {
   components: {
     Multiselect
@@ -97,7 +88,6 @@ export default {
       type: "Expense",
       description: "",
       selectedCategory: "",
-      remarks: "",
       categories: [],
       submittedExpense: null,
       isOpen: false,
@@ -108,8 +98,8 @@ export default {
     }
   },
   created() {
-    this.expenseCategories = expenseCategoriesJSON;
-    // this.setCategories();
+    // this.expenseCategories = expenseCategoriesJSON;
+    this.setCategories();
   },
   setup() {
     const toast = useToast()
@@ -126,11 +116,14 @@ export default {
   methods: {
     addTag(newTag) {
       const tag = { name: newTag };
-      Vue.set(this.expenseCategories, this.expenseCategories.length, tag);
       this.selectedCategory = tag;
-      // let catType  = this.type === 'Income' ? 'incomeCategories' : 'expenseCategories';
-  
-      // localStorage.setItem(catType, JSON.stringify(this.expenseCategories));
+      if(this.type === 'Income'){
+        this.incomeCategories.push(tag);
+        localStorage.setItem('incomeCategories', JSON.stringify(this.expenseCategories));
+      }else{
+        this.expenseCategories.push(tag);
+        localStorage.setItem('expenseCategories', JSON.stringify(this.expenseCategories));
+      }
     },
     isFormValid() {
       return this.description && this.selectedCategory;
@@ -139,20 +132,18 @@ export default {
       
     },
     async setCategories(){
-      // alert('refresh')
-      // let incomeCategories = JSON.parse(localStorage.getItem('incomeCategories')) || [];
-      // let expenseCategories = JSON.parse(localStorage.getItem('expenseCategories')) || [];
-      // if(incomeCategories.length == 0){
-      //   localStorage.setItem('incomeCategories', JSON.stringify(incomeCategoriesJSON));
-      // }
-      // if(expenseCategories.length == 0){
-      //   localStorage.setItem('expenseCategories', JSON.stringify(expenseCategoriesJSON));
-      // }
-      // this.incomeCategories = JSON.parse(localStorage.getItem('incomeCategories')) || [];
-      // this.expenseCategories = JSON.parse(localStorage.getItem('expenseCategories')) || [];
+      let incomeCategories = JSON.parse(localStorage.getItem('incomeCategories')) || [];
+      let expenseCategories = JSON.parse(localStorage.getItem('expenseCategories')) || [];
+      if(incomeCategories.length == 0){
+        localStorage.setItem('incomeCategories', JSON.stringify(incomeCategoriesJSON));
+      }
+      if(expenseCategories.length == 0){
+        localStorage.setItem('expenseCategories', JSON.stringify(expenseCategoriesJSON));
+      }
+      this.incomeCategories = JSON.parse(localStorage.getItem('incomeCategories')) || [];
+      this.expenseCategories = JSON.parse(localStorage.getItem('expenseCategories')) || [];
     },
     generateUniqueId() {
-      // Base-36 includes numbers 0-9 and letters a-z
       return `${Date.now().toString(36)}`;
     },
     async saveToLocal(data) {
@@ -164,7 +155,6 @@ export default {
       this.isSubmitted = true;
       if (this.isFormValid()) {
         this.loading = true;
-        // const scriptUrl = 'https://script.google.com/macros/s/AKfycbz1ntHueHZPMGDmsSLLkgIEXl7GiygF1L1c0mJ4IeoQZCpMlRMpFvByr4iixs7AFNJo/exec';
         try {
           let formData ={};
           formData.id = this.generateUniqueId();
@@ -172,7 +162,6 @@ export default {
           formData.type = this.type;
           formData.description=  this.description;
           formData.category = this.selectedCategory ? this.selectedCategory.name : '';
-          formData.remarks = this.remarks;
           await this.saveToLocal(formData);
           this.resetFileds();
           this.toast.success('Data submitted successfully!');
@@ -194,7 +183,6 @@ export default {
           formData.append('type', expense.type);
           formData.append('description', expense.description);
           formData.append('category', expense.category);
-          formData.append('remarks', expense.remarks);
 
           const response = await fetch(scriptUrl, {
             method: 'POST',
@@ -215,7 +203,6 @@ export default {
       this.type = "Expense";
       this.description = '';
       this.selectedCategory = "";
-      this.remarks = '';
     }
   }
 }
