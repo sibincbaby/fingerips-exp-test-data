@@ -153,9 +153,10 @@ export default {
         formData.append('category', this.selectedCategory ? this.selectedCategory.name : '');
         formData.append('remarks', this.remarks);
         const response = await fetch(scriptUrl, {
-          redirect: 'follow',
+          redirect:'follow',
           method: 'POST',
           body: formData,
+          mode: 'no-cors'
         });
         console.log(response);
         this.resetFileds();
