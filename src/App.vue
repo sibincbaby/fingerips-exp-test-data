@@ -45,8 +45,7 @@
       <label class="label">Category <span class="has-text-danger">*</span>:</label>
       <div class="control">
         <div class="select is-fullwidth">
-
-          <multiselect v-model="selectedCategory" :options="categories" label="name" track-by="name" :searchable="true"
+          <multiselect v-model="selectedCategory" :options="type === 'Income' ? incomeCategories : expenseCategories" label="name" track-by="name" :searchable="true"
             :close-on-select="true" :clear-on-select="false" :hide-selected="true" :preserve-search="true"
             :multiple="false" :taggable="true" :select-on-tab="true"
             :class="{ 'is-open': isOpen, 'is-danger': categoryError }" @open="isOpen = true" @close="isOpen = false"
@@ -83,11 +82,11 @@
   </div>
 </template>
 <script>
-// Import Vue-multiselect
+import Vue from 'vue';
 import Multiselect from 'vue-multiselect';
 import { useToast } from 'vue-toastification';
-import expenseCategories from './assets/expenseCategories.json';
-import incomeCategories from './assets/incomeCategories.json';
+import expenseCategoriesJSON from './assets/expenseCategories.json';
+// import incomeCategoriesJSON from './assets/incomeCategories.json';
 export default {
   components: {
     Multiselect
@@ -99,21 +98,18 @@ export default {
       description: "",
       selectedCategory: "",
       remarks: "",
-      categories: [
-        { name: 'Food' },
-        { name: 'Transportation' },
-        { name: 'Entertainment' },
-        { name: 'Utilities' },
-        { name: 'Shopping' }
-      ],
+      categories: [],
       submittedExpense: null,
       isOpen: false,
       isSubmitted: false,
-      loading: false
+      loading: false,
+      expenseCategories:[],
+      incomeCategories:[],
     }
   },
   created() {
-    this.categories = expenseCategories;
+    this.expenseCategories = expenseCategoriesJSON;
+    // this.setCategories();
   },
   setup() {
     const toast = useToast()
@@ -130,48 +126,87 @@ export default {
   methods: {
     addTag(newTag) {
       const tag = { name: newTag };
-      this.categories.push(tag);
+      Vue.set(this.expenseCategories, this.expenseCategories.length, tag);
       this.selectedCategory = tag;
+      // let catType  = this.type === 'Income' ? 'incomeCategories' : 'expenseCategories';
+  
+      // localStorage.setItem(catType, JSON.stringify(this.expenseCategories));
     },
     isFormValid() {
       return this.description && this.selectedCategory;
     },
     mounted() {
-      this.loadCategories();
+      
     },
-    async loadCategories() {
-      this.categories = this.type === 'Income' ? incomeCategories : expenseCategories;
+    async setCategories(){
+      // alert('refresh')
+      // let incomeCategories = JSON.parse(localStorage.getItem('incomeCategories')) || [];
+      // let expenseCategories = JSON.parse(localStorage.getItem('expenseCategories')) || [];
+      // if(incomeCategories.length == 0){
+      //   localStorage.setItem('incomeCategories', JSON.stringify(incomeCategoriesJSON));
+      // }
+      // if(expenseCategories.length == 0){
+      //   localStorage.setItem('expenseCategories', JSON.stringify(expenseCategoriesJSON));
+      // }
+      // this.incomeCategories = JSON.parse(localStorage.getItem('incomeCategories')) || [];
+      // this.expenseCategories = JSON.parse(localStorage.getItem('expenseCategories')) || [];
+    },
+    generateUniqueId() {
+      // Base-36 includes numbers 0-9 and letters a-z
+      return `${Date.now().toString(36)}`;
+    },
+    async saveToLocal(data) {
+      let expenses = JSON.parse(localStorage.getItem('expenses')) || [];
+      expenses.push(data);
+      localStorage.setItem('expenses', JSON.stringify(expenses));
     },
     async submitExpense() {
       this.isSubmitted = true;
       if (this.isFormValid()) {
         this.loading = true;
-        const scriptUrl = 'https://script.google.com/macros/s/AKfycbz1ntHueHZPMGDmsSLLkgIEXl7GiygF1L1c0mJ4IeoQZCpMlRMpFvByr4iixs7AFNJo/exec';
+        // const scriptUrl = 'https://script.google.com/macros/s/AKfycbz1ntHueHZPMGDmsSLLkgIEXl7GiygF1L1c0mJ4IeoQZCpMlRMpFvByr4iixs7AFNJo/exec';
+        try {
+          let formData ={};
+          formData.id = this.generateUniqueId();
+          formData.amount = this.amount;
+          formData.type = this.type;
+          formData.description=  this.description;
+          formData.category = this.selectedCategory ? this.selectedCategory.name : '';
+          formData.remarks = this.remarks;
+          await this.saveToLocal(formData);
+          this.resetFileds();
+          this.toast.success('Data submitted successfully!');
+          this.isSubmitted = false;
+          this.loading = false;
+          await this.processLocalStorage();
+        } catch (error) {
+          console.error('Error submitting form:', error);
+        }
+      }
+    },
+    async processLocalStorage() {
+      const expenses = JSON.parse(localStorage.getItem('expenses')) || [];
+      const scriptUrl = 'https://script.google.com/macros/s/AKfycbz1ntHueHZPMGDmsSLLkgIEXl7GiygF1L1c0mJ4IeoQZCpMlRMpFvByr4iixs7AFNJo/exec';
+      for (const expense of expenses) {
         try {
           const formData = new FormData();
-          formData.append('amount', this.amount);
-          formData.append('type', this.type);
-          formData.append('description', this.description);
-          formData.append('category', this.selectedCategory ? this.selectedCategory.name : '');
-          formData.append('remarks', this.remarks);
+          formData.append('amount', expense.amount);
+          formData.append('type', expense.type);
+          formData.append('description', expense.description);
+          formData.append('category', expense.category);
+          formData.append('remarks', expense.remarks);
+
           const response = await fetch(scriptUrl, {
-            redirect: 'follow',
             method: 'POST',
             body: formData,
             mode: 'no-cors'
           });
           console.log(response);
-          this.resetFileds();
-          this.toast.success('Data submitted successfully!');
-          this.isSubmitted = false;
-          this.loading = false;
-          // if (response.ok) {
-          //   console.log('Data sent successfully');
-          // } else {
-          //   console.error('Failed to send data:', response.statusText);
-          // }
+          let storedExpenses = JSON.parse(localStorage.getItem('expenses')) || [];
+          storedExpenses = storedExpenses.filter(e => e.id !== expense.id);
+          localStorage.setItem('expenses', JSON.stringify(storedExpenses));
         } catch (error) {
-          console.error('Error submitting form:', error);
+          console.error('Error submitting stored expense:', error);
         }
       }
     },
