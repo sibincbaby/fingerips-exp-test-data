@@ -254,4 +254,17 @@ export default {
   color: #4a4a4a; /* Default text color for inactive state */
   box-shadow: 0 0 5px rgba(0, 0, 0, 0.1); /* Shadow effect for inactive state */
 }
+.radio:focus {
+  outline: none;
+}
+
+.radio:focus-visible {
+  outline: none;
+}
+
+.radio:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(50, 115, 220, 0.5); /* Custom focus style */
+}
+
 </style>
