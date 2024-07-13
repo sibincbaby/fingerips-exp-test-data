@@ -40,31 +40,18 @@
       <div class="control">
         <div class="select is-fullwidth">
 
-          <multiselect 
-          v-model="selectedCategory" 
-          :options="categories" 
-          label="name" 
-          track-by="name" 
-          :searchable="true"
-          :close-on-select="true"
-          :clear-on-select="false"
-          :hide-selected="true"
-          :preserve-search="true"
-          :multiple="false"
-          :taggable="true"
-          :select-on-tab="true"
-          :class="{ 'is-open': isOpen, 'is-danger': categoryError }"
-          @open="isOpen = true"
-          @close="isOpen = false"
-          @tag="addTag"
-        >
-          <template #tag="props">
-            <span class="custom-tag">
-              {{ props.option.name }}
-              <i @click="props.remove(props.option)">×</i>
-            </span>
-          </template>
-        </multiselect>
+          <multiselect v-model="selectedCategory" :options="categories" label="name" track-by="name" :searchable="true"
+            :close-on-select="true" :clear-on-select="false" :hide-selected="true" :preserve-search="true"
+            :multiple="false" :taggable="true" :select-on-tab="true"
+            :class="{ 'is-open': isOpen, 'is-danger': categoryError }" @open="isOpen = true" @close="isOpen = false"
+            @tag="addTag">
+            <template #tag="props">
+              <span class="custom-tag">
+                {{ props.option.name }}
+                <i @click="props.remove(props.option)">×</i>
+              </span>
+            </template>
+          </multiselect>
         </div>
 
       </div>
@@ -104,7 +91,7 @@ export default {
       description: "",
       selectedCategory: "",
       remarks: "",
-        categories: [
+      categories: [
         { name: 'Food' },
         { name: 'Transportation' },
         { name: 'Entertainment' },
@@ -113,7 +100,7 @@ export default {
       ],
       submittedExpense: null,
       isOpen: false,
-      isSubmitted:false,
+      isSubmitted: false,
       loading: false
     }
   },
@@ -133,47 +120,45 @@ export default {
     addTag(newTag) {
       const tag = { name: newTag };
       this.categories.push(tag);
-      this.selectedCategory=tag;
+      this.selectedCategory = tag;
     },
     isFormValid() {
       return this.description && this.selectedCategory;
     },
     async submitExpense() {
-      this.loading = true;
       this.isSubmitted = true;
-      if(this.isFormValid()){
-        
-     
-      const scriptUrl = 'https://script.google.com/macros/s/AKfycbz1ntHueHZPMGDmsSLLkgIEXl7GiygF1L1c0mJ4IeoQZCpMlRMpFvByr4iixs7AFNJo/exec';
-      try {
-        const formData = new FormData();
-        formData.append('amount', this.amount);
-        formData.append('type', this.type);
-        formData.append('description', this.description);
-        formData.append('category', this.selectedCategory ? this.selectedCategory.name : '');
-        formData.append('remarks', this.remarks);
-        const response = await fetch(scriptUrl, {
-          redirect:'follow',
-          method: 'POST',
-          body: formData,
-          mode: 'no-cors'
-        });
-        console.log(response);
-        this.resetFileds();
-        this.toast.success('Data submitted successfully!');
-        this.isSubmitted = false;
-        this.loading = false;
-        // if (response.ok) {
-        //   console.log('Data sent successfully');
-        // } else {
-        //   console.error('Failed to send data:', response.statusText);
-        // }
-      } catch (error) {
-        console.error('Error submitting form:', error);
+      if (this.isFormValid()) {
+        this.loading = true;
+        const scriptUrl = 'https://script.google.com/macros/s/AKfycbz1ntHueHZPMGDmsSLLkgIEXl7GiygF1L1c0mJ4IeoQZCpMlRMpFvByr4iixs7AFNJo/exec';
+        try {
+          const formData = new FormData();
+          formData.append('amount', this.amount);
+          formData.append('type', this.type);
+          formData.append('description', this.description);
+          formData.append('category', this.selectedCategory ? this.selectedCategory.name : '');
+          formData.append('remarks', this.remarks);
+          const response = await fetch(scriptUrl, {
+            redirect: 'follow',
+            method: 'POST',
+            body: formData,
+            mode: 'no-cors'
+          });
+          console.log(response);
+          this.resetFileds();
+          this.toast.success('Data submitted successfully!');
+          this.isSubmitted = false;
+          this.loading = false;
+          // if (response.ok) {
+          //   console.log('Data sent successfully');
+          // } else {
+          //   console.error('Failed to send data:', response.statusText);
+          // }
+        } catch (error) {
+          console.error('Error submitting form:', error);
+        }
       }
-    }
     },
-    resetFileds(){
+    resetFileds() {
       this.amount = '';
       this.type = "Expense";
       this.description = '';
